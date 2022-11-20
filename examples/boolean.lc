@@ -1,0 +1,40 @@
+
+; In λ-calculus we use functions to encode data.
+; The Church encoding system is the simplest way to encode boolean values.
+; That means that redexes (ρ) are kept to a minimum.
+
+T := λxy.x
+F := λxy.y
+
+; The chosen functions are not being applied so their redexes are 0.
+
+ρ T
+ρ F
+
+; To create the NOT operator we use the following function.
+; The parameter p acts as a selector, if it's T it selects F and vice versa.
+
+NOT := λp.p F T
+
+β NOT T
+β NOT F
+
+; To create the AND operator we use the following function.
+; The parameters p and q act as selectors of themselves.
+
+AND := λpq.pqp
+
+β AND T T
+β AND T F
+β AND F T
+β AND F F
+
+; To create the OR operator we use the following function.
+; The parameters p and q act as selectors of themselves.
+
+OR := λpq.pTq
+
+β OR T T
+β OR T F
+β OR F T
+β OR F F
