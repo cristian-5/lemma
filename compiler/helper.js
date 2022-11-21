@@ -7,6 +7,7 @@ const SCHEME = {
 
 const $ = (s, c) => `\x1b[38;5;${c}m${s}\x1b[0m`;
 function highlight(code) {
+	code = code.replace(/"/g, '');
 	if (HIGHLIGHT === false) return code;
 	return code.replace(/λ/g, $('λ', SCHEME.lambda))
 		.replace(/\./g, $('.', SCHEME.punctuation))
