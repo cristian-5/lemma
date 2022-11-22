@@ -1,0 +1,63 @@
+
+; In λ-calculus we use functions to encode numerals.
+; More specifically, N is described by the number of ones that sum to N.
+; This is done through application of the 'o' function over 'z' N times.
+
+ZERO  := λoz.z
+ONE   := λoz.o(z)
+TWO   := λoz.o(o(z))
+THREE := λoz.o(o(o(z)))
+FOUR  := λoz.o(o(o(o(z))))
+FIVE  := λoz.o(o(o(o(o(z)))))
+
+; We can also encode a successor function, which produces an
+; isomorphic representation of the next number in the sequence.
+
+SUCC := λn.λoz.o(n(o)(z))
+
+κ SUCC FIVE
+
+; We can also encode a predecessor function, which produces an
+; isomorphic representation of the previous number in the sequence.
+
+PRED := λn.λoz.n(λgh.h(go))(λ_.z)(λy.y)
+
+κ PRED THREE
+
+; The function ISZERO can be contrued through a series of application
+; of a constant function that returns F followed by an application of
+; T. Since ZERO does no function application, when passing T returns
+; true. Every other number applies n times the constant F function
+; that discards T and returns F instead:
+
+T := λab.a
+F := λab.b
+
+ISZERO := λn.n(λ_.F)T
+
+β ISZERO ZERO
+β ISZERO FOUR
+
+; Additions the process of applying the successor, a times over b:
+
+ADD := λab.a SUCC b
+
+κ ADD FIVE THREE
+
+; Subraction is the process of applying the predecessor, b times over a:
+
+SUB := λab.b PRED a
+
+κ SUB FIVE TWO
+
+; Multiplication a * b is the process of adding b, a times:
+
+MUL := λab.a (ADD b) ZERO
+
+κ MUL FIVE THREE
+
+; Power b^e can be achieved throuh function composition:
+
+POW := λbe.eb
+
+κ POW FIVE TWO

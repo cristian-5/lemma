@@ -130,7 +130,8 @@ export const parse = (tokens: Token[]): Expression[] => {
 		const context: string[] = [];
 		// declaration = (variable ':=' abstraction) | [ 'β' | 'ρ' ] abstraction
 		const declaration = (): Expression => {
-			if (match(TokenType.beta) || match(TokenType.rho)) {
+			if (match(TokenType.beta) || match(TokenType.rho) ||
+				match(TokenType.kappa)) {
 				return new Reduction(prev(), abstraction());
 			} else if (match(TokenType.variable)) {
 				const v = prev();
@@ -151,12 +152,12 @@ export const parse = (tokens: Token[]): Expression[] => {
 			if (!match(TokenType.lambda)) return application();
 			const lam = prev();
 			const par = [ ];
-			while (match(TokenType.variable)) {
+			while (match(TokenType.variable) || match(TokenType.under)) {
 				const v = prev();
 				if (context.includes(v.lexeme)) throw error("RDC", bounds(v));
 				par.push(v); context.push(v.lexeme);
 			}
-			if (par.length === 0) throw error("VAR", bounds(lam));
+			if (par.length === 0) throw error("VAR", bounds(peek()));
 			const dot = consume(TokenType.dot, '.', error("DOT", bounds(lam)));
 			return new Abstraction(lam, par, dot, abstraction());
 		};

@@ -38,6 +38,7 @@ NOT := λp.p F T
 * Line comments start with `;` and get ignored when in `script` mode.
 * Beta reduction output is performed with the `β` unary function.
 * Rho count of redexes is performed with the `ρ` unary function.
+* Kappa counter application is performed with the `κ` unary function.
 * Function parameters can be named through the `ƒ` symbol.
 * Unused parameters can be named through the `_` symbol.
 

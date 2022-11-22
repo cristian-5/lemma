@@ -26,7 +26,7 @@ export class JSCompiler implements Compiler {
 
 	abstraction(a: Abstraction): string {
 		return `${ a.parameters.map(
-			(p: Token) => p.lexeme.replace(/ƒ/g, 'f')
+			(p: Token) => p.lexeme.replace('ƒ', 'f')
 		).join(' => ') } => ${a.body.compile!(this)}`;
 	}
 
@@ -48,6 +48,11 @@ export class JSCompiler implements Compiler {
 					return `_comment('ρ', _actualise(parseScript(\`${
 					ds}\`).body[0]), '->', _rho(${ds}, false));`
 				else return `_rho(${data});`;
+			case 'κ':
+				if (this.mode === "paper")
+					return `_comment('κ', _actualise(parseScript(\`${
+					ds}\`).body[0]), '->', _kappa(${ds}, false));`
+				else return `_kappa(${data});`;
 		}
 		return "";
 	}
@@ -68,9 +73,7 @@ export class JSCompiler implements Compiler {
 			decoder.decode(Deno.readFileSync('./compiler/helper.js')),
 		];
 		for (const e of ast) code.push(e.compile!(this));
-		this.pure = this.pure.concat(code.slice(2)).filter(
-			(c: string) => !c.includes('_comment')
-		);
+		this.pure = this.pure.concat(code.slice(2));
 		return code.join('\n');
 	}
 

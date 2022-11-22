@@ -2,7 +2,7 @@
 const SCHEME = {
 	lambda: 42, alpha: 5, beta: 33, rho: 9,
 	punctuation: 243, function: 208,
-	arrow: 197, constant: 230,
+	arrow: 197, constant: 230, kappa: 93
 };
 
 const $ = (s, c) => `\x1b[38;5;${c}m${s}\x1b[0m`;
@@ -17,6 +17,7 @@ function highlight(code) {
 		.replace(/α/g, $('α', SCHEME.alpha))
 		.replace(/β/g, $('β', SCHEME.beta))
 		.replace(/ρ/g, $('ρ', SCHEME.rho))
+		.replace(/κ/g, $('κ', SCHEME.kappa))
 		.replace(/[()]+/g, m => $(m, SCHEME.punctuation))
 		.replace(/[A-Z]+/g, m => $(m, SCHEME.constant));
 
@@ -101,9 +102,15 @@ function _rho(r, log = true) {
 	const data = parseScript(r.toString()).body[0];
 	if (log) console.log(rho(data));
 	else return rho(data);
-	// try {
-	// 	const result = n(x => x + 1)(0);
-	// 	if (typeof result === "number") return result;
-	// 	else return _actualise(parseScript(result.toString()).body[0]);
-	// } catch { return "invalid argument to count function"; }
+}
+
+// κ applies a numeric counter to a function
+function _kappa(n, log = true) {
+	let result = 0;
+	try {
+		result = n(x => x + 1)(0);
+		if (typeof result !== "number") result = 0;
+	} catch { result = 0; }
+	if (log) console.log(result);
+	else return result;
 }

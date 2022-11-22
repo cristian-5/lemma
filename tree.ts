@@ -6,7 +6,7 @@ export const LANGUAGE = "axiom-calc";
 export enum TokenType {
 	begin, variable, lambda, dot, under,
 	open, close, other, warlus, end, lf,
-	alpha, beta, eta, rho
+	alpha, beta, eta, rho, kappa
 }
 export type Token = { type: TokenType, lexeme: string, position: number };
 

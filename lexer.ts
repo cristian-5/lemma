@@ -62,6 +62,7 @@ export const lex = (code: string): Token[] => {
 			case 'β': token(TokenType.beta); break;
 			case 'η': token(TokenType.eta); break;
 			case 'ρ': token(TokenType.rho); break;
+			case 'κ': token(TokenType.kappa); break;
 			case '_': token(TokenType.under); break;
 			case ':':
 				if (match('=')) token(TokenType.warlus);
