@@ -1,5 +1,5 @@
 
-export const LANGUAGE = "axiom-calc";
+export const LANGUAGE = "lemma";
 
 // ==== TOKENS =================================================================
 
