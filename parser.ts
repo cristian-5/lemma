@@ -29,9 +29,10 @@ class SyntaxError {
 		this.bounds = bounds;
 	}
 
-	print(code: string) {
+	print(code: string, highlight = true) {
 		const N = 40 - 4;
-		const H = (d: string) => `${LANGUAGE}: syntax error on [${d}]`;
+		const E = (d: string) => `${LANGUAGE}: syntax error on [${d}]`;
+		const H = (d: string) => highlight ? `\x1b[4;38;5;9m${d}\x1b[0m` : d;
 		const lines = (from: number, to: number) => {
 			let lines = 1;
 			for (let i = from; i < to; i++)
@@ -56,18 +57,19 @@ class SyntaxError {
 		if (l[1] == 1) {
 			// error on one line,
 			// show the partial string if <= N characters
+			let out = "";
 			if (to - from <= N) {
-				console.log(H(`${l[0]}:${this.bounds[0]}:${this.bounds[1]}`));
-				console.log("    " + code.substring(from, to));
-				console.log("    " + '~'.repeat(from - to));
+				out += E(`${l[0]}:${this.bounds[0]}:${this.bounds[1]}`) + '\n';
+				out += code.substring(from, this.bounds[0]) +
+					H(code.substring(this.bounds[0], this.bounds[1]))
+					+ code.substring(this.bounds[1], to);
+				return out.replace(/\t/g, '    ');
 			} else {
 				// the line is too long, try to only show the error
 				// if error alone is > N characters, show the error
 				// shortened to N characters
 			}
-			console.log(H + `[${l[0]}:${this.bounds[0]}:${this.bounds[1]}]:`);
-		}
-		
+		} // error on multiple lines is never going to happen.
 	}
 
 	/*private range(code: string) {
@@ -182,7 +184,7 @@ export const parse = (tokens: Token[]): Expression[] => {
 				const i = context.indexOf(v.lexeme);
 				const j = globals.indexOf(v.lexeme);
 				if (i === - 1 && j === -1) throw error("UID", bounds(v));
-				return new Variable(v, i);
+				return new Variable(v, i != - 1 ? i + 1 : i);
 			}
 			throw error("IEX", bounds(peek()));
 		};
