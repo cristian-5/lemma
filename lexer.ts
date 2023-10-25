@@ -31,7 +31,8 @@ export const lex = (code: string): Token[] => {
 
 	const scan_comment = () => {
 		while (peek() != '\n' && !is_at_end()) advance();
-		token(TokenType.lf); // comments are treated as newlines
+		match('\n');
+		token(TokenType.comment);
 		start = index;
 	};
 
@@ -44,25 +45,26 @@ export const lex = (code: string): Token[] => {
 				continue;
 			}
 			while (!is_at_end() && is_upper(peek().charCodeAt(0))) advance();
-			token(TokenType.variable);
+			token(TokenType.constant);
 			continue;
 		}
 		switch(c) {
+			case '\\':
 			case 'λ': token(TokenType.lambda); break;
-			case '(': token(TokenType.open); break;
-			case ')': token(TokenType.close); break;
-			case ' ': case '\t': case ' ': break;
+			case '(': token(TokenType.open);   break;
+			case ')': token(TokenType.close);  break;
+			case ' ': case '\t': case ' ':     break;
 			case '\r': case '\n':
 				if (tokens[tokens.length - 1].type !== TokenType.lf)
 					token(TokenType.lf);
 				else tokens[tokens.length - 1].lexeme += c;
 			break;
-			case '.': token(TokenType.dot); break;
+			case '.': token(TokenType.dot);   break;
 			case 'α': token(TokenType.alpha); break;
-			case 'β': token(TokenType.beta); break;
-			case 'η': token(TokenType.eta); break;
+			case 'β': token(TokenType.beta);  break;
+			//case 'η': token(TokenType.eta); break;
 			case 'ρ': token(TokenType.rho); break;
-			case 'κ': token(TokenType.kappa); break;
+			//case 'κ': token(TokenType.kappa); break;
 			case '_': token(TokenType.under); break;
 			case ':':
 				if (match('=')) token(TokenType.warlus);

@@ -1,7 +1,9 @@
 
 import {
-	LANGUAGE, Token, TokenType,
-	Expression, Declaration, Abstraction, Application, Variable, Reduction, Comment,
+	Token, TokenType,
+	Comment, Declaration,
+	Alpha, Beta, Rho,
+	Expression, Abstraction, Application, Variable
 } from "./tree.ts";
 
 const errors: { [code: string]: string } = {
@@ -29,10 +31,9 @@ class SyntaxError {
 		this.bounds = bounds;
 	}
 
-	print(code: string, highlight = true) {
+	print(code: string) {
 		const N = 40 - 4;
-		const E = (d: string) => `${LANGUAGE}: syntax error on [${d}]`;
-		const H = (d: string) => highlight ? `\x1b[4;38;5;9m${d}\x1b[0m` : d;
+		const H = (d: string): string => `syntax error on [${d}]:`;
 		const lines = (from: number, to: number) => {
 			let lines = 1;
 			for (let i = from; i < to; i++)
@@ -57,35 +58,19 @@ class SyntaxError {
 		if (l[1] == 1) {
 			// error on one line,
 			// show the partial string if <= N characters
-			let out = "";
 			if (to - from <= N) {
-				out += E(`${l[0]}:${this.bounds[0]}:${this.bounds[1]}`) + '\n';
-				out += code.substring(from, this.bounds[0]) +
-					H(code.substring(this.bounds[0], this.bounds[1]))
-					+ code.substring(this.bounds[1], to);
-				return out.replace(/\t/g, '    ');
+				console.log(H(`${l[0]}:${this.bounds[0]}:${this.bounds[1]}`));
+				console.log("    " + code.substring(from, to));
+				console.log("    " + '~'.repeat(to - from));
 			} else {
 				// the line is too long, try to only show the error
 				// if error alone is > N characters, show the error
 				// shortened to N characters
 			}
-		} // error on multiple lines is never going to happen.
+			console.log(H + `[${l[0]}:${this.bounds[0]}:${this.bounds[1]}]:`);
+		}
+		
 	}
-
-	/*private range(code: string) {
-		for (let i = 0; i < this.bounds[0]; i++) {
-			const c = code.charCodeAt(i);
-			if (c === 10) {
-				this.startLine++; this.startColumn = 1;
-			} else this.startColumn++;
-		}
-		this.endColumn = this.startColumn;
-		for (let i = this.bounds[0]; i < this.bounds[1]; i++) {
-			const c = code.charCodeAt(i);
-			if (c === 10) { this.endLine++; this.endColumn = 1;}
-			this.endColumn++;
-		}
-	}*/
 
 }
 
@@ -102,9 +87,7 @@ export const parse = (tokens: Token[]): Expression[] => {
 	const error = (code: string, bounds: number[] = []) =>
 		new SyntaxError(errors[code], bounds);
 	const advance = () => { if (!is_at_end()) current++; return prev(); };
-	const receed = () => { if (!is_at_start()) current--; return prev(); };
 	const peek = () => tokens[current], prev = () => tokens[current - 1];
-	const is_at_start = () => peek().type === TokenType.begin;
 	const is_at_end = () => peek().type === TokenType.end;
 	const check = (t: TokenType) => is_at_end() ? false : peek().type === t;
 	const match = (type: TokenType, lexemes?: string[] | string) => {
@@ -127,29 +110,36 @@ export const parse = (tokens: Token[]): Expression[] => {
 
 	// ==== Expressions ========================================================
 
-	const globals: string[] = [];
+	const globals: { [name: string]: Expression } = { };
 	const expression = (): Expression => {
 		const context: string[] = [];
-		// declaration = (variable ':=' abstraction) | [ 'β' | 'ρ' ] abstraction
+		// declaration = constant ":=" abstraction ;
 		const declaration = (): Expression => {
-			if (match(TokenType.beta) || match(TokenType.rho) ||
-				match(TokenType.kappa)) {
-				return new Reduction(prev(), abstraction());
-			} else if (match(TokenType.variable)) {
+			if (match(TokenType.constant)) {
 				const v = prev();
-				const i = globals.indexOf(v.lexeme);
-				if (!match(TokenType.warlus)) {
-					receed();
-					return abstraction();
-				}
-				if (i !== -1) throw error("RDC", bounds(v));
-				const w = prev();
-				globals.push(v.lexeme);
-				return new Declaration(v, w, abstraction());
-			}
-			return abstraction();
+				if (globals.hasOwnProperty(v.lexeme))
+					throw error("RDC", bounds(v));
+				if (!match(TokenType.warlus))
+					throw error("IEX", bounds(v));
+				return new Declaration(v, globals[v.lexeme] = abstraction());
+			} else throw error("IEX", bounds(prev()));
 		};
-		// abstraction = ('λ' variable '.' abstraction) | application
+		// alpha = "α" abstraction ;
+		const alpha = (): Expression => {
+			if (match(TokenType.alpha)) return new Alpha(prev(), abstraction());
+			else throw error("IEX", bounds(prev()));
+		};
+		// beta = "β" abstraction ;
+		const beta = (): Expression => {
+			if (match(TokenType.beta)) return new Beta(prev(), abstraction());
+			else throw error("IEX", bounds(prev()));
+		};
+		// rho = "ρ" abstraction ;
+		const rho = (): Expression => {
+			if (match(TokenType.rho)) return new Rho(prev(), abstraction());
+			else throw error("IEX", bounds(prev()));
+		};
+		// abstraction = ("λ" variable "." abstraction) | application ;
 		const abstraction = (): Expression => {
 			if (!match(TokenType.lambda)) return application();
 			const lam = prev();
@@ -163,7 +153,7 @@ export const parse = (tokens: Token[]): Expression[] => {
 			const dot = consume(TokenType.dot, '.', error("DOT", bounds(lam)));
 			return new Abstraction(lam, par, dot, abstraction());
 		};
-		// application = atom { application }
+		// application = atom { application } ;
 		const application = (): Expression => {
 			let e = atom();
 			while (!is_at_end() && !(
@@ -172,34 +162,50 @@ export const parse = (tokens: Token[]): Expression[] => {
 			)) e = new Application(e, atom());
 			return e;
 		};
-		// atom = variable | '(' abstraction ')'
+		// atom = variable | constant | "(" abstraction ")" ;
 		const atom = (): Expression => {
 			if (match(TokenType.open)) {
 				const e = abstraction();
 				consume(TokenType.close, ")", error("CLO"));
 				return e;
-			}
-			if (match(TokenType.variable)) {
+			} else if (match(TokenType.variable)) {
 				const v = prev();
-				const i = context.indexOf(v.lexeme);
-				const j = globals.indexOf(v.lexeme);
-				if (i === - 1 && j === -1) throw error("UID", bounds(v));
-				return new Variable(v, i != - 1 ? i + 1 : i);
+				const i = context.lastIndexOf(v.lexeme);
+				if (i === - 1) throw error("UID", bounds(v));
+				return new Variable(v, context.length - i - 1);
+			} else if (match(TokenType.constant)) {
+				const c = prev();
+				if (globals.hasOwnProperty(c.lexeme)) {
+					return globals[c.lexeme].copy!();
+				} else throw error("UID", bounds(c));
 			}
 			throw error("IEX", bounds(peek()));
 		};
-		return declaration();
+
+		switch (peek().type) {
+			case TokenType.constant: return declaration();
+			case    TokenType.alpha: return alpha();
+			case     TokenType.beta: return beta();
+			case      TokenType.rho: return rho();
+			//case 	TokenType.eta:
+			//case TokenType.kappa:
+			default: return abstraction();
+		}
+
 	};
 
 	// ==== Parser =============================================================
 
 	const instructions: Expression[] = [];
 	while (!is_at_end()) {
-		while (match(TokenType.lf)) instructions.push(new Comment(prev()));
+		while (match(TokenType.lf));
+		while (match(TokenType.comment))
+			instructions.push(new Comment(prev()));
+		while (match(TokenType.lf));
 		if (is_at_end()) break;
-		instructions.push(expression());
-		if (is_at_end()) break;
-		while (match(TokenType.lf)) instructions.push(new Comment(prev()));
+		const e = expression();
+		if (e !== null) instructions.push(e);
+		while (match(TokenType.lf));
 	}
 	return instructions;
 

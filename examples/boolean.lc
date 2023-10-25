@@ -3,15 +3,10 @@
 ; The Church encoding system is the simplest way to encode boolean values.
 ; That means that redexes (ρ) are kept to a minimum.
 
-T := λxy.x
-F := λxy.y
+T := λtf.t
+F := λtf.f
 
-; The chosen functions are not being applied so their redexes are 0.
-
-ρ T
-ρ F
-
-; To create the NOT operator we use the following function.
+; To create the NOT operator we use `NOT := λp.p F T`.
 ; The parameter p acts as a selector, if it's T it selects F and vice versa.
 
 NOT := λp.p F T
@@ -19,7 +14,7 @@ NOT := λp.p F T
 β NOT T
 β NOT F
 
-; To create the AND operator we use the following function.
+; To create the AND operator we use `AND := λpq.pqp`.
 ; The parameters p and q act as selectors of themselves.
 
 AND := λpq.pqp
@@ -29,7 +24,7 @@ AND := λpq.pqp
 β AND F T
 β AND F F
 
-; To create the OR operator we use the following function.
+; To create the OR operator we use the `OR := λpq.pTq`.
 ; The parameters p and q act as selectors of themselves.
 
 OR := λpq.pTq

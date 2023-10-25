@@ -1,0 +1,28 @@
+
+(* lemma λ-calculus grammar *)
+
+LETTER = "A" | "B" | "C" | "D" | "E" | "F" | "G"
+       | "H" | "I" | "J" | "K" | "L" | "M" | "N"
+       | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
+       | "V" | "W" | "X" | "Y" | "Z" | "a" | "b"
+       | "c" | "d" | "e" | "f" | "g" | "h" | "i"
+       | "j" | "k" | "l" | "m" | "n" | "o" | "p"
+       | "q" | "r" | "s" | "t" | "u" | "v" | "w"
+       | "x" | "y" | "z" ;
+
+DIGIT = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+
+variable = LETTER | "_" | "ƒ" ;
+constant = (LETTER | "_"), { LETTER | DIGIT | "_" } ;
+
+declaration = constant ":=" abstraction ;
+alpha = "α" abstraction ; (* shows de Bruijn indices *)
+ beta = "β" abstraction ; (* performs beta-reduction *)
+   ro = "ρ" abstraction ; (* lists all reduction redexes *)
+kappa = "κ" abstraction ; (* applies a counter *)
+
+abstraction = ("λ" variable "." abstraction) | application ;
+application = atom { application } ;
+atom = variable | "(" abstraction ")" ;
+
+program = { declaration | beta | ro } ;

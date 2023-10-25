@@ -5,8 +5,12 @@ Lemma Calculator is a simple
 [λ-calculus](https://en.wikipedia.org/wiki/Lambda_calculus) interpreter
 for students, build with ❤️, [Deno](https://deno.land/) and *javascript*.
 The language is based on the λ-calculus, with the addition of constants
-and comments. We provide a default `--mode=paper` option to print comments
-and useful program insights as well as syntax highlighting for the terminal.
+and comments.
+
+> ✳️ **Update**: Silly me had to rewrite this fully cause I originally
+> implemented this with eager evaluation, twice. Ye pretty stupid.
+> *Right now it works perfectly and is just as **lazy** as you would expect.*
+
 
 ## Syntax
 
@@ -15,14 +19,14 @@ set-up an additional input method to switch back and forth to greek letters.
 
 ```
 ; In λ-calculus we use functions to encode data.
-; This is one of the siplest ways to encode boolean values.
+; The Church encoding system is the simplest way to encode boolean values.
 ; That means that redexes (ρ) are kept to a minimum.
 
-T := λxy.x
-F := λxy.y
+T := λtf.t
+F := λtf.f
 
-; To create the NOT operator we use the following function.
-; Parameter p acts as a selector: if it's T it selects F and vice versa.
+; To create the NOT operator we use `NOT := λp.p F T`.
+; The parameter p acts as a selector, if it's T it selects F and vice versa.
 
 NOT := λp.p F T
 
@@ -31,13 +35,14 @@ NOT := λp.p F T
 ```
 
 * Lambdas are defined with `λ`, the parameters, `.` and the body.
-* Constant definitions are achieved through `NAME := expression`.
+* Constant definitions are achieved through `<CONSTANT> := <expression>`.
 * Only one expression per line is allowed.
 * Contstants are defined with uppercase letters.
 * Parameters are defined with a single lowercase letter.
-* Line comments start with `;` and get ignored when in `script` mode.
+* Line comments start with `;` proceed until the end of line.
+* Alpha conversion (de Bruijn) is performed with the `α` unary function.
 * Beta reduction output is performed with the `β` unary function.
-* Rho count of redexes is performed with the `ρ` unary function.
+* Rho display of redexes is performed with the `ρ` unary function.
 * Kappa counter application is performed with the `κ` unary function.
 * Function parameters can be named through the `ƒ` symbol.
 * Unused parameters can be named through the `_` symbol.
@@ -52,11 +57,9 @@ deno run --allow-read lemma.ts <filename.lc>
 
 ```
 usage: deno run --allow-read lemma.ts <filename.lc>
-flags: --help, --version, --javascript, --highlight
-modes: --mode=[paper|script]
+flags: --help, --version, --highlight
 ```
 
 ## Requirements and Dependencies
 
 * The project is build on top of [Deno](https://deno.land/).
-* It uses the [meriyah](https://github.com/meriyah/meriyah) parser.
