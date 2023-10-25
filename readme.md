@@ -3,7 +3,7 @@
 
 Lemma Calculator is a simple
 [λ-calculus](https://en.wikipedia.org/wiki/Lambda_calculus) interpreter
-for students, build with ❤️, [Deno](https://deno.land/) and *javascript*.
+for students, build with ❤️, [Deno](https://deno.land/) and `javascript`.\
 The language is based on the λ-calculus, with the addition of constants
 and comments.
 
@@ -53,13 +53,9 @@ NOT := λp.p F T
 deno run --allow-read lemma.ts <filename.lc>
 ```
 
-#### Options
+### Options
 
 ```
 usage: deno run --allow-read lemma.ts <filename.lc>
 flags: --help, --version, --highlight
 ```
-
-## Requirements and Dependencies
-
-* The project is build on top of [Deno](https://deno.land/).
