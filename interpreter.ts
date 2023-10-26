@@ -75,14 +75,14 @@ function substitute_handler(
 
 type Redex = (redex: Expression) => void;
 function reduce(ast: Expression, redex?: Redex): Expression {
-	while (true) {
-		if (!(ast instanceof Application)) return ast;
+	while (ast instanceof Application) {
 		if (abstraction(ast.lhs) && abstraction(ast.rhs))
 			ast = substitute(ast.rhs, (ast.lhs as Abstraction).body);
 		else if (abstraction(ast.lhs)) ast.rhs = reduce(ast.rhs, redex);
 		else ast.lhs = reduce(ast.lhs, redex);
 		if (redex !== undefined) redex(ast);
 	}
+	return ast;
 }
 
 function display(text: string, HIGHLIGHT: boolean): void {
