@@ -16,13 +16,10 @@ variable = LETTER | "_" | "ƒ" ;
 constant = (LETTER | "_"), { LETTER | DIGIT | "_" } ;
 
 declaration = constant ":=" abstraction ;
-alpha = "α" abstraction ; (* shows de Bruijn indices *)
- beta = "β" abstraction ; (* performs beta-reduction *)
-   ro = "ρ" abstraction ; (* lists all reduction redexes *)
-kappa = "κ" abstraction ; (* applies a counter *)
+operator = ("α" | "β" | "ρ" | "κ") application ;
 
 abstraction = ("λ" variable "." abstraction) | application ;
 application = atom { application } ;
 atom = variable | "(" abstraction ")" ;
 
-program = { declaration | beta | ro } ;
+program = { declaration | operator | beta | ro } ;
