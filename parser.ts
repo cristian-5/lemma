@@ -2,7 +2,7 @@
 import {
 	Token, TokenType,
 	Comment, Declaration,
-	Alpha, Beta, Rho,
+	Alpha, Beta, Rho, Kappa,
 	Expression, Abstraction, Application, Variable
 } from "./tree.ts";
 
@@ -31,9 +31,9 @@ class SyntaxError {
 		this.bounds = bounds;
 	}
 
-	print(code: string) {
+	print(code: string, file: string) {
 		const N = 40 - 4;
-		const H = (d: string): string => `syntax error on [${d}]:`;
+		const H = (d: string): string => `syntax error on [${file}:${d}]:`;
 		const lines = (from: number, to: number) => {
 			let lines = 1;
 			for (let i = from; i < to; i++)
@@ -59,7 +59,7 @@ class SyntaxError {
 			// error on one line,
 			// show the partial string if <= N characters
 			if (to - from <= N) {
-				console.log(H(`${l[0]}:${this.bounds[0]}:${this.bounds[1]}`));
+				console.log(H(`${l[0]}`));
 				console.log("    " + code.substring(from, to));
 				console.log("    " + '~'.repeat(to - from));
 			} else {
@@ -67,9 +67,7 @@ class SyntaxError {
 				// if error alone is > N characters, show the error
 				// shortened to N characters
 			}
-			console.log(H + `[${l[0]}:${this.bounds[0]}:${this.bounds[1]}]:`);
 		}
-		
 	}
 
 }
@@ -124,20 +122,14 @@ export const parse = (tokens: Token[]): Expression[] => {
 				return new Declaration(v, globals[v.lexeme] = abstraction());
 			} else throw error("IEX", bounds(prev()));
 		};
-		// alpha = "α" abstraction ;
-		const alpha = (): Expression => {
-			if (match(TokenType.alpha)) return new Alpha(prev(), abstraction());
-			else throw error("IEX", bounds(prev()));
-		};
-		// beta = "β" abstraction ;
-		const beta = (): Expression => {
-			if (match(TokenType.beta)) return new Beta(prev(), abstraction());
-			else throw error("IEX", bounds(prev()));
-		};
-		// rho = "ρ" abstraction ;
-		const rho = (): Expression => {
-			if (match(TokenType.rho)) return new Rho(prev(), abstraction());
-			else throw error("IEX", bounds(prev()));
+		const operator = (): Expression => {
+			switch (advance().type) {
+				case TokenType.alpha: return new Alpha(prev(), application());
+				case  TokenType.beta: return new  Beta(prev(), application());
+				case   TokenType.rho: return new   Rho(prev(), application());
+				case TokenType.kappa: return new Kappa(prev(), application());
+				default: throw error("IEX", bounds(prev()));
+			}
 		};
 		// abstraction = ("λ" variable "." abstraction) | application ;
 		const abstraction = (): Expression => {
@@ -181,16 +173,9 @@ export const parse = (tokens: Token[]): Expression[] => {
 			}
 			throw error("IEX", bounds(peek()));
 		};
-
-		switch (peek().type) {
-			case TokenType.constant: return declaration();
-			case    TokenType.alpha: return alpha();
-			case     TokenType.beta: return beta();
-			case      TokenType.rho: return rho();
-			//case 	TokenType.eta:
-			//case TokenType.kappa:
-			default: return abstraction();
-		}
+		
+		if (peek().type === TokenType.constant) return declaration();
+		else return operator();
 
 	};
 

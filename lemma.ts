@@ -24,9 +24,8 @@ if (flags["help"]) {
 	Deno.exit(1);
 }
 
-const code = new TextDecoder().decode(
-	Deno.readFileSync(flags["_"][0].toString())
-);
+const file = flags["_"][0].toString();
+const code = new TextDecoder().decode(Deno.readFileSync(file));
 const HIGHLIGHT = flags["highlight"];
 
 try {
@@ -35,5 +34,5 @@ try {
 	interpret(ast, HIGHLIGHT);
 } catch (e) {
 	console.error(e.message);
-	console.error(e.print(code));
+	console.error(e.print(code, file));
 }

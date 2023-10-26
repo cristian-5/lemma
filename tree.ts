@@ -35,23 +35,20 @@ export class Comment extends Expression {
 }
 
 export class Declaration extends Expression {
-	variable: Token; value: Expression;
-	constructor(variable: Token, value: Expression) {
+	constant: Token; value: Expression;
+	constructor(constant: Token, value: Expression) {
 		super();
-		this.variable = variable;
+		this.constant = constant;
 		this.value = value;
-		this.start = variable.position;
+		this.start = constant.position;
 		this.end = value.end;
 	}
-	description(): string {
-		return `${this.variable.lexeme} := ${this.value.description!()}`;
-	}
 	copy(): Expression {
-		return new Declaration(this.variable, this.value.copy!());
+		return new Declaration(this.constant, this.value.copy!());
 	}
 }
 
-export class Alpha extends Expression {
+export class Operator extends Expression {
 	e: Expression; token: Token;
 	constructor(t: Token, e: Expression) {
 		super();
@@ -60,34 +57,23 @@ export class Alpha extends Expression {
 		this.start = t.position;
 		this.end = e.end;
 	}
-	description(): string { return `α ${this.e.description!()}`; }
-	copy(): Expression { return new Beta(this.token, this.e.copy!()); }
+	copy(): Expression { return new Operator(this.token, this.e.copy!()); }
 }
 
-export class Beta extends Expression {
-	e: Expression; token: Token;
-	constructor(t: Token, e: Expression) {
-		super();
-		this.token = t;
-		this.e = e;
-		this.start = t.position;
-		this.end = e.end;
-	}
-	description(): string { return `β ${this.e.description!()}`; }
-	copy(): Expression { return new Beta(this.token, this.e.copy!()); }
+export class Alpha extends Operator {
+	constructor(t: Token, e: Expression) { super(t, e); }
 }
 
-export class Rho extends Expression {
-	e: Expression; token: Token;
-	constructor(t: Token, e: Expression) {
-		super();
-		this.token = t;
-		this.e = e;
-		this.start = t.position;
-		this.end = e.end;
-	}
-	description(): string { return `ρ ${this.e.description!()}`; }
-	copy(): Expression { return new Beta(this.token, this.e.copy!()); }
+export class Beta extends Operator {
+	constructor(t: Token, e: Expression) { super(t, e); }
+}
+
+export class Rho extends Operator {
+	constructor(t: Token, e: Expression) { super(t, e); }
+}
+
+export class Kappa extends Operator {
+	constructor(t: Token, e: Expression) { super(t, e); }
 }
 
 export class Variable extends Expression {
@@ -100,7 +86,7 @@ export class Variable extends Expression {
 		this.end = literal.position + 1;
 	}
 	description(): string { return this.literal.lexeme; }
-	debruijn(): string { return (this.index + 1).toString(); }
+	debruijn(): string { return `${this.index + 1} `; }
 	copy(): Expression { return new Variable(this.literal, this.index); }
 }
 
@@ -148,10 +134,10 @@ export class Application extends Expression {
 	debruijn(): string {
 		let result = "";
 		let actualised = this.lhs.debruijn!();
-		if (actualised.length > 1) result = '(' + actualised + ')';
+		if (actualised.length > 2) result = '(' + actualised.trim() + ')';
 		else result = actualised;
 		actualised = this.rhs.debruijn!();
-		if (actualised.length > 1) result += '(' + actualised + ')';
+		if (actualised.length > 2) result += '(' + actualised.trim() + ')';
 		else result += actualised;
 		return result;
 	}

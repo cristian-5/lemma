@@ -1,7 +1,8 @@
 
 import {
+	Token, TokenType,
 	Comment, Declaration, Expression, Abstraction, Application, Variable,
-	Alpha, Beta, Rho
+	Alpha, Beta, Rho, Kappa
 } from "./tree.ts";
 
 const SCHEME = {
@@ -85,28 +86,99 @@ function reduce(ast: Expression, redex?: Redex): Expression {
 	return ast;
 }
 
-function display(text: string, HIGHLIGHT: boolean): void {
+const I = new Abstraction(
+	{ type: TokenType.lambda, lexeme: "λ", position: 0 }, [
+		{ type: TokenType.variable, lexeme: "i", position: 0 }
+	], { type: TokenType.dot, lexeme: ".", position: 0 }, new Variable(
+		{ type: TokenType.variable, lexeme: "i", position: 0 }
+	)
+);
+function count(ast: Expression): number {
+	let n = 0;//new Application(ast, I)
+	reduce(ast, _ => n++);
+	return n;
+}
+
+class Constants {
+	names: string[];
+	values: string[];
+	constructor() {
+		this.names = [];
+		this.values = [];
+	}
+	insert(name: string, value: string) {
+		for (let i = 0; i < this.names.length; i++) {
+			if (name.length < this.names[i].length) {
+				this.names.splice(i, 0, name);
+				this.values.splice(i, 0, value);
+				return;
+			}
+		}
+		this.names.push(name);
+		this.values.push(value);
+	}
+	demingle(text: string) {
+		for (let i = 0; i < this.names.length; i++) {
+			const name = this.names[i];
+			const value = this.values[i];
+			while (text.includes(value))
+				text = text.replace(value, name);
+		}
+		return text;
+	}
+}
+
+function display(text: string, HIGHLIGHT: boolean) {
 	console.log(HIGHLIGHT ? highlight(text) : text);
 }
 
 export function interpret(ast: Expression[], HIGHLIGHT = true): void {
-	const declarations: { [id: string] : string } = { };
+	const constants = new Constants();
 	for (const node of ast) {
 		if (node instanceof Comment) {
 			display(node.description(), false);
 		} else if (node instanceof Declaration) {
-			display(node.description(), HIGHLIGHT);
+			// this can't be reduced, take for example `W := (λw.www)(λw.www)`
+			const text = node.value.description!();
+			const key = node.constant.lexeme;
+			const demi = constants.demingle(text)
+			if (text.length !== demi.length)
+				display(`${key} := ${demi} -> ${text}`, HIGHLIGHT);
+			else display(`${key} := ${text}`, HIGHLIGHT);
+			constants.insert(key, node.value.description!());
 		} else if (node instanceof Alpha) {
-			display(node.description(), HIGHLIGHT);
-			display("| " + reduce(node.e).debruijn!(), HIGHLIGHT);
+			const text = node.e.description!();
+			const demi = constants.demingle(text);
+			if (text.length !== demi.length)
+				display(`α ${demi} -> ${text}`, HIGHLIGHT);
+			else display("α " + text, HIGHLIGHT);
+			display("| " + node.e.debruijn!(), HIGHLIGHT);
 		} else if (node instanceof Beta) {
-			display(node.description(), HIGHLIGHT);
-			display("| " + reduce(node.e).description!(), HIGHLIGHT);
+			let text = node.e.description!();
+			let demi = constants.demingle(text);
+			if (text.length !== demi.length)
+				display(`β ${demi} -> ${text}`, HIGHLIGHT);
+			else display("β " + text, HIGHLIGHT);
+			text = reduce(node.e).description!();
+			demi = constants.demingle(text);
+			if (text.length !== demi.length)
+				display(`| ${text} -> ${demi}`, HIGHLIGHT);
+			else display("| " + text, HIGHLIGHT);
 		} else if (node instanceof Rho) {
-			display(node.description(), HIGHLIGHT);
+			const text = node.e.description!();
+			const demi = constants.demingle(text);
+			if (text.length !== demi.length)
+				display(`ρ ${demi} -> ${text}`, HIGHLIGHT);
+			else display("ρ " + text, HIGHLIGHT);
 			reduce(node.e, (redex: Expression) => {
 				display("| " + redex.description!(), HIGHLIGHT);
 			});
+		} else if (node instanceof Kappa) {
+			const text = node.e.description!();
+			const demi = constants.demingle(text);
+			if (text.length !== demi.length)
+				display(`κ ${demi} -> ${text} -> ${count(node.e)}`, HIGHLIGHT);
+			else display(`κ ${text} -> ${count(node.e)}`, HIGHLIGHT);
 		}
 	}
 }
