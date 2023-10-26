@@ -24,12 +24,17 @@ AND := λpq.pqp
 β AND F T
 β AND F F
 
-; To create the OR operator we use the `OR := λpq.pTq`.
+; To create the OR operator we use the `OR := λpq.ppq`.
 ; The parameters p and q act as selectors of themselves.
 
-OR := λpq.pTq
+OR := λpq.ppq
 
 β OR T T
 β OR T F
 β OR F T
 β OR F F
+
+; Another way to create the OR operator is via `OR := λpq.pTq`.
+; This of course is equivalent to the previous definition, backed
+; up by an eta reduction restricted on the inputs `η(T, F)`:
+; `OR := λpq.ppq = λpq.pTq`.
