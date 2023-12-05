@@ -143,7 +143,10 @@ export const parse = (tokens: Token[]): Expression[] => {
 			}
 			if (par.length === 0) throw error("VAR", bounds(peek()));
 			const dot = consume(TokenType.dot, '.', error("DOT", bounds(lam)));
-			return new Abstraction(lam, par, dot, abstraction());
+			const result = new Abstraction(lam, par, dot, abstraction());
+			// remove variables from debrujin index context
+			context.splice(context.length - par.length, par.length);
+			return result;
 		};
 		// application = atom { application } ;
 		const application = (): Expression => {
