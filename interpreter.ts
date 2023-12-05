@@ -86,16 +86,53 @@ function reduce(ast: Expression, redex?: Redex): Expression {
 	return ast;
 }
 
-const I = new Abstraction(
-	{ type: TokenType.lambda, lexeme: "λ", position: 0 }, [
-		{ type: TokenType.variable, lexeme: "i", position: 0 }
-	], { type: TokenType.dot, lexeme: ".", position: 0 }, new Variable(
-		{ type: TokenType.variable, lexeme: "i", position: 0 }
+type Counter = (lhs: Expression, rhs: Expression) => void;
+function numeral(ast: Expression, counter: Counter): Expression {
+	while (ast instanceof Application) {
+		if (abstraction(ast.lhs) && abstraction(ast.rhs)) {
+			counter(ast.lhs, ast.rhs); // counts applications of I to I
+			ast = substitute(ast.rhs, (ast.lhs as Abstraction).body);
+		} else if (abstraction(ast.lhs)) ast.rhs = numeral(ast.rhs, counter);
+		else ast.lhs = numeral(ast.lhs, counter);
+	}
+	return ast;
+}
+
+const C = new Abstraction(
+	{ type: TokenType.lambda, lexeme: 'λ', position: 0 }, [
+		{ type: TokenType.variable, lexeme: '#', position: 0 }
+	], { type: TokenType.dot, lexeme: '.', position: 0 }, new Variable(
+		{ type: TokenType.variable, lexeme: '#', position: 0 }
 	)
-);
+); // counter function
+
+const E = new Abstraction(
+	{ type: TokenType.lambda, lexeme: 'λ', position: 0 }, [
+		{ type: TokenType.variable, lexeme: '@', position: 0 }
+	], { type: TokenType.dot, lexeme: '.', position: 0 }, new Variable(
+		{ type: TokenType.variable, lexeme: '@', position: 0 }
+	)
+); // element function
+
+/// tells if the given expression is the artificial counter C: λ#.#
+function artificial(e: Expression): boolean {
+	// no need to check for body given that '#' is not a valid variable name
+	return abstraction(e) && (e as Abstraction).parameter.lexeme === '#';
+}
+/// tells if the given expression is the artificial element E: λ@.@
+function element(e: Expression): boolean {
+	// no need to check for body given that '@' is not a valid variable name
+	return abstraction(e) && (e as Abstraction).parameter.lexeme === '@';
+}
+
 function count(ast: Expression): number {
-	let n = 0;//new Application(ast, I)
-	reduce(ast, _ => n++);
+	let n = 0;
+	do {
+		ast = reduce(ast);
+		ast = numeral(new Application(new Application(ast, C), E), (l, r) => {
+			if (artificial(l) && element(r)) n++; // (λ#.#)(λ@.@)
+		});
+	} while (!element(ast)); // the counting ends when we reach λ@.@
 	return n;
 }
 

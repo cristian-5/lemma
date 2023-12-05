@@ -39,19 +39,13 @@ NOT := λp.p F T
 * Only one expression per line is allowed.
 * Contstants are defined with uppercase letters.
 * Parameters are defined with a single lowercase letter.
-* Line comments start with `;` proceed until the end of line.
-* Alpha conversion (de Bruijn) is performed with the `α` unary function.
-* Beta reduction output is performed with the `β` unary function.
-* Rho display of redexes is performed with the `ρ` unary function.
-* Kappa counter application is performed with the `κ` unary function.
+* Line comments start with `;` and proceed until the end of line.
+* Alpha conversion (de Bruijn) is performed with the `α` statement.
+* Beta reduction output is performed with the `β` statement.
+* Rho display of redexes is performed with the `ρ` statement.
+* Kappa numeral counter is performed with the `κ` statement.
 * Function parameters can be named through the `ƒ` symbol.
 * Unused parameters can be named through the `_` symbol.
-
-## Usage
-
-```
-deno run --allow-read lemma.ts <filename.lc>
-```
 
 ### Options
 
