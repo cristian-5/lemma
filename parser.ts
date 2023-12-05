@@ -138,7 +138,8 @@ export const parse = (tokens: Token[]): Expression[] => {
 			const par = [ ];
 			while (match(TokenType.variable) || match(TokenType.under)) {
 				const v = prev();
-				if (context.includes(v.lexeme)) throw error("RDC", bounds(v));
+				if (v.lexeme !== '_' && context.includes(v.lexeme))
+					throw error("RDC", bounds(v));
 				par.push(v); context.push(v.lexeme);
 			}
 			if (par.length === 0) throw error("VAR", bounds(peek()));

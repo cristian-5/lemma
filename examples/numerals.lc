@@ -2,6 +2,8 @@
 ; In λ-calculus we use functions to encode numerals.
 ; More specifically, N is described by the number of ones that sum to N.
 ; This is done through application of the 'o' function over 'z' N times.
+; The parameter 'o' is a shorthand for "one" and 'z' is a shorthand for "zero",
+; this makes the encoding of numbers more readable.
 
 ZERO  := λoz.z
 ONE   := λoz.o(z)
@@ -20,7 +22,7 @@ SUCC := λn.λoz.o(n(o)(z))
 ; We can also encode a predecessor function, which produces an
 ; isomorphic representation of the previous number in the sequence.
 
-PRED := λn.λoz.n(λgh.h(go))(λ_.z)(λy.y)
+PRED := λn.λoz.n(λgh.h(go))(λ_.z)(λu.u)
 
 κ PRED THREE
 

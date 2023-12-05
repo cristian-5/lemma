@@ -1,7 +1,7 @@
 
 import {
-	Token, TokenType,
-	Comment, Declaration, Expression, Abstraction, Application, Variable,
+	TokenType, Comment, Declaration,
+	Expression, Abstraction, Application, Variable,
 	Alpha, Beta, Rho, Kappa
 } from "./tree.ts";
 
